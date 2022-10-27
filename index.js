@@ -7,14 +7,10 @@ const axios = require('axios');
 const host = process.env.host
 const port = process.env.port
 const target = `http://${host}:${port}`;
-
 var receiverStatus = null;
+
 setInterval(function(){
-    var currentStatus = checkReceiver();
-    if(currentStatus != receiverStatus) {
-        console.log(`Receiver is ${currentStatus}!`)
-        receiverStatus = currentStatus;
-    }
+    checkReceiver()
 }, 1000);
 
 const readline = require('readline').createInterface({
@@ -52,15 +48,23 @@ function getDate() {
 }
 
 function checkReceiver() {
-    var status = "offline";
     var sock = new net.Socket();
     sock.setTimeout(500);
     sock.on('connect', function() {
-        status = "online";
+        if("online" !== receiverStatus) {
+            console.log('\x1b[32m',`Receiver is online!`, '\x1b[0m')
+        }
+        receiverStatus = "online";
         sock.destroy();
     }).on('error', function(e) {
+        if("offline" !== receiverStatus) {
+            console.log('\x1b[31m' ,`Receiver is offline!`, '\x1b[0m')
+        }
+        receiverStatus = "offline";
     }).on('timeout', function(e) {
+        if("offline" !== receiverStatus) {
+            console.log('\x1b[31m', `Receiver is offline!`, '\x1b[0m')
+        }
+        receiverStatus = "offline";
     }).connect(port, host);
-
-    return status;
 }
