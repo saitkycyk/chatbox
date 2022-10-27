@@ -30,11 +30,11 @@ function sendMessage(message) {
 
     var message = `${getDate()}: ${message}`
 
-    axios.post(target, {message})
+    axios.post(target, {message}, {timeout: 3000})
       .then(function (response) {
       })
       .catch(function (error) {
-        console.log(error);
+        console.log('\x1b[31m', "> Message not sent!", '\x1b[0m');
       });
 }
 
