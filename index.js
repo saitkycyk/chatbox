@@ -1,12 +1,21 @@
 require('dotenv').config()
-
 const express = require('express')
 const app = express()
 app.use(express.json())
+const net = require('net');
+const axios = require('axios');
 const host = process.env.host
 const port = process.env.port
 const target = `http://${host}:${port}`;
-const axios = require('axios');
+
+var receiverStatus = null;
+setInterval(function(){
+    var currentStatus = checkReceiver();
+    if(currentStatus != receiverStatus) {
+        console.log(`Receiver is ${currentStatus}!`)
+        receiverStatus = currentStatus;
+    }
+}, 1000);
 
 const readline = require('readline').createInterface({
     input: process.stdin,
@@ -40,4 +49,18 @@ function sendMessage(message) {
 
 function getDate() {
     return new Date().toLocaleString("en-US", {timeZone: "Europe/Vienna", hour12: false});
-} 
+}
+
+function checkReceiver() {
+    var status = "offline";
+    var sock = new net.Socket();
+    sock.setTimeout(500);
+    sock.on('connect', function() {
+        status = "online";
+        sock.destroy();
+    }).on('error', function(e) {
+    }).on('timeout', function(e) {
+    }).connect(port, host);
+
+    return status;
+}
