@@ -1,0 +1,12 @@
+{
+  "name": "chatbox",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "~4.16.1"
+  }
+}
