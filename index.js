@@ -6,7 +6,6 @@ const net = require('net');
 const axios = require('axios');
 var host = process.env.host ?? localhost
 const port = process.env.port
-const target = `http://${host}:${port}`;
 var receiverStatus = null;
 
 app.post('/', (req, res) => {
@@ -37,7 +36,7 @@ function sendMessage(message) {
 
     var message = `${getDate()}: ${message}`
 
-    axios.post(target, {message}, {timeout: 3000})
+    axios.post(`http://${host}:${port}`, {message}, {timeout: 3000})
         .then(function (response) {})
         .catch(function (error) {
             console.log('\x1b[31m', "> Message not sent!", '\x1b[0m');
