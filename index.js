@@ -4,7 +4,7 @@ const app = express()
 app.use(express.json())
 const net = require('net');
 const axios = require('axios');
-var host = process.env.host ?? localhost
+var host = process.env.host
 const port = process.env.port
 var receiverStatus = null;
 
@@ -51,6 +51,12 @@ async function initializeClient() {
 
     if(receiverStatus != "online") {
         await findIp();
+
+        setTimeout(() => {
+            if(receiverStatus != "online") {
+                console.log("Failed to find the receiver!");
+            }
+        }, 1000)
     }
     
     setInterval(function() {
@@ -77,7 +83,7 @@ async function checkReceiver() {
             console.log('\x1b[31m', `Receiver is offline!`, '\x1b[0m')
             receiverStatus = "offline";
         }
-    }).connect(port, host);
+    }).connect(port, host ? host : "error");
 }
 
 
@@ -126,11 +132,11 @@ function findMyIp() {
         for (var devName in interfaces) {
         var iface = interfaces[devName];
     
-        for (var i = 0; i < iface.length; i++) {
-            var alias = iface[i];
-            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
-            resolve(alias.address);
-        }
+            for (var i = 0; i < iface.length; i++) {
+                var alias = iface[i];
+                if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
+                    resolve(alias.address);
+            }
         }
         resolve('0.0.0.0');
     });
