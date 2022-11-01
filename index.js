@@ -17,11 +17,7 @@ app.listen(port, () => {
     console.log(`Chatbox started, listening to port: ${port}...`)
 })
 
-findIp().then(
-    setInterval(function() {
-        checkReceiver();
-    }, 1000)
-);
+initializeClient();
 
 const readline = require('readline').createInterface({
     input: process.stdin,
@@ -47,7 +43,22 @@ function getDate() {
     return new Date().toLocaleString("en-US", {timeZone: "Europe/Vienna", hour12: false});
 }
 
-function checkReceiver() {
+async function initializeClient() {
+    if(host) {
+        await checkReceiver();
+        await new Promise(r => setTimeout(r, 600));
+    }
+
+    if(receiverStatus != "online") {
+        await findIp();
+    }
+    
+    setInterval(function() {
+        checkReceiver();
+    }, 1000)
+}
+
+async function checkReceiver() {
     var sock = new net.Socket();
     sock.setTimeout(500);
     sock.on('connect', function() {
@@ -72,35 +83,35 @@ function checkReceiver() {
 
 function findIp() {
     return new Promise((resolve) => {
-        console.log("Trying to find the receiver...");
+        console.log("Trying to find the receiver dynamically...");
     
-        findMyIp().then(function(myip) {
+        findMyIp().then(async function(myip) {
             if(myip == "0.0.0.0") {
                 console.log("Could not find the local IP! IP autodetect failed!")
-                return false;
+                resolve(false);
+                return;
             }
 
             const seperatedIp = myip.split('.');
             for(var i = 0; i < 255; i++) {
                 if(i == seperatedIp[3]) {continue;}
 
-                findReceiver(`${seperatedIp[0]}.${seperatedIp[1]}.${seperatedIp[2]}.${i}`).then(function(receiverIp) {
-                    if(receiverIp) {
-                        host = receiverIp
-                        resolve(true);
-                    }
-                });
+                findReceiver(`${seperatedIp[0]}.${seperatedIp[1]}.${seperatedIp[2]}.${i}`);
             }
         });
+
+        resolve(true);
     })
 }
 
 function findReceiver(possibleIp) {
     return new Promise((resolve) => {
         var sock = new net.Socket();
-        sock.setTimeout(500);
+        sock.setTimeout(50);
         sock.on('connect', function() {
+            host = possibleIp
             resolve(possibleIp);
+            console.log("Receiver is found successfuly!");
         }).on('error', function(e) {
             resolve(false);
         }).on('timeout', function(e) {
